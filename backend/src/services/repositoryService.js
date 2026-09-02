@@ -1,5 +1,6 @@
 import {
   createRepository as createRepoData,
+  findAllRepositories,
   findRepositoryByGithubId,
   findRepositoryById,
 } from '../repositories/repositoryData.js';
@@ -43,6 +44,10 @@ export async function importRepository(url) {
   }
 
   return createRepoData(metadata);
+}
+
+export async function getAllRepositories() {
+  return findAllRepositories();
 }
 
 export async function createRepository(data) {

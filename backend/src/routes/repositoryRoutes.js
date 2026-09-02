@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   createRepository,
+  getAllRepositories,
   getRepositoryByGithubId,
   getRepositoryById,
 } from '../controllers/repositoryController.js';
@@ -8,6 +9,7 @@ import {
 const router = Router();
 
 router.post('/repositories', createRepository);
+router.get('/repositories', getAllRepositories);
 router.get('/repositories/github/:githubId', getRepositoryByGithubId);
 router.get('/repositories/:id', getRepositoryById);
 

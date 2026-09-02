@@ -1,5 +1,6 @@
 import {
   importRepository,
+  getAllRepositories as getAllReposService,
   getRepositoryByGithubId as getRepoByGithubIdService,
   getRepositoryById as getRepoByIdService,
 } from '../services/repositoryService.js';
@@ -33,6 +34,15 @@ export async function createRepository(req, res) {
     }
 
     return res.status(500).json({ error: 'Failed to import repository' });
+  }
+}
+
+export async function getAllRepositories(req, res) {
+  try {
+    const repositories = await getAllReposService();
+    return res.status(200).json(repositories);
+  } catch {
+    return res.status(500).json({ error: 'Failed to retrieve repositories' });
   }
 }
 

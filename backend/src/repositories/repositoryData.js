@@ -21,3 +21,11 @@ export async function findRepositoryById(id) {
     },
   });
 }
+
+export async function findAllRepositories() {
+  return prisma.repository.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+}

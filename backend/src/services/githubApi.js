@@ -89,3 +89,52 @@ export async function getRepositoryFiles(owner, repo, branch) {
       type: item.type,
     }));
 }
+
+export async function getFileContent(owner, repo, branch, path) {
+  if (!owner || !repo || !branch || !path) {
+    throw new Error('Owner, repo, branch, and path parameters are required');
+  }
+
+  const encodedPath = path
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+  const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodedPath}?ref=${encodeURIComponent(branch)}`;
+  const headers = {
+    Accept: 'application/vnd.github+json',
+    'User-Agent': 'github-knowledge-assistant',
+  };
+
+  const token = process.env.GITHUB_TOKEN;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, { headers });
+
+  if (response.status === 404) {
+    throw new Error('File not found on GitHub');
+  }
+
+  if (response.status === 403 && response.headers.get('x-ratelimit-remaining') === '0') {
+    throw new Error('GitHub API rate limit exceeded');
+  }
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  if (data.type !== 'file' || typeof data.content !== 'string') {
+    throw new Error('Requested path is not a regular file');
+  }
+
+  const content = Buffer.from(data.content, 'base64').toString('utf-8');
+
+  return {
+    path: data.path || path,
+    content,
+    size: data.size,
+  };
+}

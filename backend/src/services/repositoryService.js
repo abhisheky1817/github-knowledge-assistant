@@ -5,6 +5,7 @@ import {
   findRepositoryById,
 } from '../repositories/repositoryData.js';
 import {
+  getFileContent as getFileContentFromGithub,
   getRepository,
   getRepositoryFiles as getFilesFromGithub,
 } from './githubApi.js';
@@ -60,6 +61,24 @@ export async function getRepositoryFiles(id) {
   }
 
   return getFilesFromGithub(repository.owner, repository.name, repository.defaultBranch);
+}
+
+export async function getFileContent(id, path) {
+  if (!path || typeof path !== 'string' || !path.trim()) {
+    throw new Error('Path is required');
+  }
+
+  const repository = await findRepositoryById(id);
+  if (!repository) {
+    throw new Error('Repository not found');
+  }
+
+  return getFileContentFromGithub(
+    repository.owner,
+    repository.name,
+    repository.defaultBranch,
+    path.trim()
+  );
 }
 
 export async function createRepository(data) {

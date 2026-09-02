@@ -4,6 +4,7 @@ import {
   getRepositoryByGithubId as getRepoByGithubIdService,
   getRepositoryById as getRepoByIdService,
   getRepositoryFiles as getRepoFilesService,
+  getFileContent as getFileContentService,
 } from '../services/repositoryService.js';
 
 export async function createRepository(req, res) {
@@ -106,5 +107,33 @@ export async function getRepositoryFiles(req, res) {
     }
 
     return res.status(500).json({ error: 'Failed to retrieve repository files' });
+  }
+}
+
+export async function getFileContent(req, res) {
+  try {
+    const { id } = req.params;
+    const { path } = req.query;
+
+    if (!path || typeof path !== 'string' || !path.trim()) {
+      return res.status(400).json({ error: 'Valid file path query parameter is required' });
+    }
+
+    const file = await getFileContentService(id, path.trim());
+    return res.status(200).json(file);
+  } catch (err) {
+    if (err.message === 'Repository not found') {
+      return res.status(404).json({ error: 'Repository not found' });
+    }
+
+    if (err.message.includes('not found')) {
+      return res.status(404).json({ error: 'File not found on GitHub' });
+    }
+
+    if (err.message.includes('not a regular file') || err.message.includes('required')) {
+      return res.status(400).json({ error: err.message });
+    }
+
+    return res.status(500).json({ error: 'Failed to retrieve file content' });
   }
 }

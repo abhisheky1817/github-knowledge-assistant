@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   createRepository,
   getAllRepositories,
+  getFileContent,
   getRepositoryByGithubId,
   getRepositoryById,
   getRepositoryFiles,
@@ -14,5 +15,6 @@ router.get('/repositories', getAllRepositories);
 router.get('/repositories/github/:githubId', getRepositoryByGithubId);
 router.get('/repositories/:id', getRepositoryById);
 router.get('/repositories/:id/files', getRepositoryFiles);
+router.get('/repositories/:id/files/content', getFileContent);
 
 export default router;

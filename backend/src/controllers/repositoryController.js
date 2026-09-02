@@ -1,35 +1,38 @@
 import {
-  createRepository as createRepoService,
+  importRepository,
   getRepositoryByGithubId as getRepoByGithubIdService,
   getRepositoryById as getRepoByIdService,
 } from '../services/repositoryService.js';
 
 export async function createRepository(req, res) {
   try {
-    const { githubId, name, fullName, owner, url, description, defaultBranch } = req.body;
+    const { url } = req.body;
 
-    if (!githubId || !name || !fullName || !owner || !url || !defaultBranch) {
-      return res.status(400).json({ error: 'Missing required repository fields' });
+    if (!url || typeof url !== 'string' || !url.trim()) {
+      return res.status(400).json({ error: 'Valid repository URL is required' });
     }
 
-    const parsedGithubId = Number(githubId);
-    if (Number.isNaN(parsedGithubId)) {
-      return res.status(400).json({ error: 'Invalid githubId' });
+    const before = Date.now();
+    const repository = await importRepository(url.trim());
+
+    const isNew = new Date(repository.createdAt).getTime() >= before;
+    const statusCode = isNew ? 201 : 200;
+
+    return res.status(statusCode).json(repository);
+  } catch (err) {
+    if (
+      err.message.includes('URL') ||
+      err.message.includes('Invalid') ||
+      err.message.includes('required')
+    ) {
+      return res.status(400).json({ error: err.message });
     }
 
-    const repository = await createRepoService({
-      githubId: parsedGithubId,
-      name,
-      fullName,
-      owner,
-      url,
-      description: description ?? null,
-      defaultBranch,
-    });
+    if (err.message.includes('not found')) {
+      return res.status(404).json({ error: 'Repository not found on GitHub' });
+    }
 
-    return res.status(201).json(repository);
-  } catch {
-    return res.status(500).json({ error: 'Failed to create repository' });
+    return res.status(500).json({ error: 'Failed to import repository' });
   }
 }
 

@@ -3,6 +3,7 @@ import {
   getAllRepositories as getAllReposService,
   getRepositoryByGithubId as getRepoByGithubIdService,
   getRepositoryById as getRepoByIdService,
+  getRepositoryFiles as getRepoFilesService,
 } from '../services/repositoryService.js';
 
 export async function createRepository(req, res) {
@@ -79,5 +80,31 @@ export async function getRepositoryById(req, res) {
     return res.status(200).json(repository);
   } catch {
     return res.status(500).json({ error: 'Failed to retrieve repository' });
+  }
+}
+
+export async function getRepositoryFiles(req, res) {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: 'Missing repository id' });
+    }
+
+    const files = await getRepoFilesService(id);
+    return res.status(200).json(files);
+  } catch (err) {
+    if (err.message === 'Repository not found') {
+      return res.status(404).json({ error: 'Repository not found' });
+    }
+
+    if (err.message.includes('not found')) {
+      return res.status(404).json({ error: 'Repository or branch not found on GitHub' });
+    }
+
+    if (err.message.includes('too large') || err.message.includes('truncated')) {
+      return res.status(422).json({ error: 'Repository file tree is too large to display' });
+    }
+
+    return res.status(500).json({ error: 'Failed to retrieve repository files' });
   }
 }

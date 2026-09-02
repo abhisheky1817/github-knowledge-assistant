@@ -4,7 +4,10 @@ import {
   findRepositoryByGithubId,
   findRepositoryById,
 } from '../repositories/repositoryData.js';
-import { getRepository } from './githubApi.js';
+import {
+  getRepository,
+  getRepositoryFiles as getFilesFromGithub,
+} from './githubApi.js';
 
 function parseGithubUrl(rawUrl) {
   let parsedUrl;
@@ -48,6 +51,15 @@ export async function importRepository(url) {
 
 export async function getAllRepositories() {
   return findAllRepositories();
+}
+
+export async function getRepositoryFiles(id) {
+  const repository = await findRepositoryById(id);
+  if (!repository) {
+    throw new Error('Repository not found');
+  }
+
+  return getFilesFromGithub(repository.owner, repository.name, repository.defaultBranch);
 }
 
 export async function createRepository(data) {

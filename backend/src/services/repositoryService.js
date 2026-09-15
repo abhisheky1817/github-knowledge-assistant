@@ -9,6 +9,7 @@ import {
   getRepository,
   getRepositoryFiles as getFilesFromGithub,
 } from './githubApi.js';
+import { indexRepository } from './repositoryIndexingService.js';
 
 function parseGithubUrl(rawUrl) {
   let parsedUrl;
@@ -96,4 +97,14 @@ export async function getRepositoryByGithubId(githubId) {
 
 export async function getRepositoryById(id) {
   return findRepositoryById(id);
+}
+
+export async function indexRepositoryById(id) {
+  const repository = await findRepositoryById(id);
+
+  if (!repository) {
+    throw new Error('Repository not found');
+  }
+
+  return indexRepository(repository);
 }

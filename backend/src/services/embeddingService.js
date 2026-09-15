@@ -1,15 +1,15 @@
-import OpenAI from 'openai';
+import { GoogleGenAI } from '@google/genai';
 
 let client;
 
 function getClient() {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error('OPENAI_API_KEY environment variable is not set');
+    throw new Error('GEMINI_API_KEY environment variable is not set');
   }
 
   if (!client || client.apiKey !== apiKey) {
-    client = new OpenAI({ apiKey });
+    client = new GoogleGenAI({ apiKey });
   }
 
   return client;
@@ -20,11 +20,14 @@ export async function generateEmbedding(text) {
     throw new Error('Text must be a non-empty string');
   }
 
-  const openai = getClient();
-  const response = await openai.embeddings.create({
-    model: 'text-embedding-3-small',
-    input: text,
+  const ai = getClient();
+  const response = await ai.models.embedContent({
+    model: 'gemini-embedding-2',
+    contents: text,
+    config: {
+      outputDimensionality: 1536,
+    },
   });
 
-  return response.data[0].embedding;
+  return response.embedding?.values || response.embeddings?.[0]?.values;
 }

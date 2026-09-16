@@ -5,6 +5,7 @@ import {
   getRepositoryById as getRepoByIdService,
   getRepositoryFiles as getRepoFilesService,
   getFileContent as getFileContentService,
+  indexRepositoryById,
 } from '../services/repositoryService.js';
 
 export async function createRepository(req, res) {
@@ -135,5 +136,23 @@ export async function getFileContent(req, res) {
     }
 
     return res.status(500).json({ error: 'Failed to retrieve file content' });
+  }
+}
+
+export async function indexRepository(req, res) {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: 'Missing repository id' });
+    }
+
+    const result = await indexRepositoryById(id);
+    return res.status(200).json(result);
+  } catch (err) {
+    if (err.message === 'Repository not found') {
+      return res.status(404).json({ error: 'Repository not found' });
+    }
+
+    return res.status(500).json({ error: 'Failed to index repository' });
   }
 }

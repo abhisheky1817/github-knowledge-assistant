@@ -7,6 +7,7 @@ import {
   getFileContent as getFileContentService,
   indexRepositoryById,
 } from '../services/repositoryService.js';
+import { searchCode } from '../services/codeSearchService.js';
 
 export async function createRepository(req, res) {
   try {
@@ -154,5 +155,25 @@ export async function indexRepository(req, res) {
     }
 
     return res.status(500).json({ error: 'Failed to index repository' });
+  }
+}
+
+export async function searchRepositoryCode(req, res) {
+  try {
+    const { id } = req.params;
+    const { question } = req.body || {};
+
+    if (!id) {
+      return res.status(400).json({ error: 'Missing repository id' });
+    }
+
+    if (!question || typeof question !== 'string' || !question.trim()) {
+      return res.status(400).json({ error: 'Valid question is required' });
+    }
+
+    const results = await searchCode(question, id);
+    return res.status(200).json(results);
+  } catch {
+    return res.status(500).json({ error: 'Failed to search repository code' });
   }
 }

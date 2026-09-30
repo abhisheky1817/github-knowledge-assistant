@@ -8,6 +8,7 @@ import {
   indexRepositoryById,
 } from '../services/repositoryService.js';
 import { searchCode } from '../services/codeSearchService.js';
+import { answerRepositoryQuestion } from '../services/repositoryQuestionAnswerService.js';
 
 export async function createRepository(req, res) {
   try {
@@ -175,5 +176,33 @@ export async function searchRepositoryCode(req, res) {
     return res.status(200).json(results);
   } catch {
     return res.status(500).json({ error: 'Failed to search repository code' });
+  }
+}
+
+export async function askRepositoryQuestion(req, res) {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: 'Missing repository id' });
+    }
+
+    const { question, limit } = req.body || {};
+
+    if (!question || typeof question !== 'string' || !question.trim()) {
+      return res.status(400).json({ error: 'Valid question is required' });
+    }
+
+    if (limit !== undefined && limit !== null && (!Number.isInteger(limit) || limit < 1)) {
+      return res.status(400).json({ error: 'limit must be a positive integer' });
+    }
+
+    const result = await answerRepositoryQuestion(question, id, limit);
+    return res.status(200).json(result);
+  } catch (err) {
+    if (err.message === 'Repository not found') {
+      return res.status(404).json({ error: 'Repository not found' });
+    }
+
+    return res.status(500).json({ error: 'Failed to answer question' });
   }
 }
